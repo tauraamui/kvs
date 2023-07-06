@@ -33,13 +33,13 @@ func (e Entry) resolveOwnerID() string {
 	return e.OwnerUUID.String()
 }
 
-func Store(db DB, e Entry) error {
+func Store(db KVDB, e Entry) error {
 	return db.conn.Update(func(txn *badger.Txn) error {
 		return txn.Set([]byte(e.Key()), e.Data)
 	})
 }
 
-func Get(db DB, e *Entry) error {
+func Get(db KVDB, e *Entry) error {
 	return db.conn.View(func(txn *badger.Txn) error {
 		lookupKey := e.Key()
 		item, err := txn.Get(lookupKey)

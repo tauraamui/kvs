@@ -8,7 +8,7 @@ import (
 )
 
 func resolveGenericRepo() (ExampleRepo, error) {
-	db, err := kvs.NewMemDB()
+	db, err := kvs.NewMemKVDB()
 	if err != nil {
 		return ExampleRepo{}, err
 	}

@@ -8,40 +8,40 @@ import (
 	"github.com/dgraph-io/badger/v3"
 )
 
-type DB struct {
+type KVDB struct {
 	conn *badger.DB
 }
 
-func NewDB(db *badger.DB) (DB, error) {
-	return newDB(false)
+func NewKVDB(db *badger.DB) (KVDB, error) {
+	return newKVDB(false)
 }
 
-func NewMemDB() (DB, error) {
-	return newDB(true)
+func NewMemKVDB() (KVDB, error) {
+	return newKVDB(true)
 }
 
-func newDB(inMemory bool) (DB, error) {
+func newKVDB(inMemory bool) (KVDB, error) {
 	db, err := badger.Open(badger.DefaultOptions("").WithLogger(nil).WithInMemory(inMemory))
 	if err != nil {
-		return DB{}, err
+		return KVDB{}, err
 	}
 
-	return DB{conn: db}, nil
+	return KVDB{conn: db}, nil
 }
 
-func (db DB) GetSeq(key []byte, bandwidth uint64) (*badger.Sequence, error) {
+func (db KVDB) GetSeq(key []byte, bandwidth uint64) (*badger.Sequence, error) {
 	return db.conn.GetSequence(key, bandwidth)
 }
 
-func (db DB) View(f func(txn *badger.Txn) error) error {
+func (db KVDB) View(f func(txn *badger.Txn) error) error {
 	return db.conn.View(f)
 }
 
-func (db DB) Update(f func(txn *badger.Txn) error) error {
+func (db KVDB) Update(f func(txn *badger.Txn) error) error {
 	return db.conn.Update(f)
 }
 
-func (db DB) DumpTo(w io.Writer) error {
+func (db KVDB) DumpTo(w io.Writer) error {
 	return db.conn.View(func(txn *badger.Txn) error {
 		opts := badger.DefaultIteratorOptions
 		opts.PrefetchSize = 10
@@ -62,10 +62,10 @@ func (db DB) DumpTo(w io.Writer) error {
 	})
 }
 
-func (db DB) DumpToStdout() error {
+func (db KVDB) DumpToStdout() error {
 	return db.DumpTo(os.Stdout)
 }
 
-func (db DB) Close() error {
+func (db KVDB) Close() error {
 	return db.conn.Close()
 }

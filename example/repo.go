@@ -10,7 +10,7 @@ const (
 )
 
 type ExampleRepo struct {
-	DB  kvs.DB
+	DB  kvs.KVDB
 	seq *badger.Sequence
 }
 
@@ -60,7 +60,7 @@ type Value interface {
 	Ref() interface{}
 }
 
-func saveValue(db kvs.DB, tableName string, ownerID kvs.UUID, rowID uint32, v Value) error {
+func saveValue(db kvs.KVDB, tableName string, ownerID kvs.UUID, rowID uint32, v Value) error {
 	if v == nil {
 		return nil
 	}
@@ -76,7 +76,7 @@ func saveValue(db kvs.DB, tableName string, ownerID kvs.UUID, rowID uint32, v Va
 	return nil
 }
 
-func fetchByOwner[E any](db kvs.DB, tableName string, owner kvs.UUID) ([]E, error) {
+func fetchByOwner[E any](db kvs.KVDB, tableName string, owner kvs.UUID) ([]E, error) {
 	dest := []E{}
 
 	typeRef := new(E)

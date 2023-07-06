@@ -18,7 +18,7 @@ func TestEntryStoreValuesInTable(t *testing.T) {
 		Data:       []byte{0x33},
 	}
 
-	db, err := kvs.NewMemDB()
+	db, err := kvs.NewMemKVDB()
 	is.NoErr(err)
 	defer db.Close()
 
@@ -60,7 +60,7 @@ func TestGettingEntryOutOfTableErrorIncorrectKey(t *testing.T) {
 		Data:       []byte{0x33},
 	}
 
-	db, err := kvs.NewMemDB()
+	db, err := kvs.NewMemKVDB()
 	is.NoErr(err)
 	defer db.Close()
 
@@ -149,7 +149,7 @@ func TestLoadEntriesIntoStruct(t *testing.T) {
 func TestSequences(t *testing.T) {
 	is := is.New(t)
 
-	db, err := kvs.NewMemDB()
+	db, err := kvs.NewMemKVDB()
 	is.NoErr(err)
 	defer db.Close()
 

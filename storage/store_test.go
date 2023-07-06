@@ -36,9 +36,7 @@ func TestStoreAndLoadMultipleBalloonsSuccess(t *testing.T) {
 	defer db.Close()
 
 	store := storage.New(db)
-	defer func() {
-		is.NoErr(store.Close())
-	}()
+	defer store.Close()
 
 	bigRedBalloon := Balloon{Color: "RED", Size: 695}
 	smallYellowBalloon := Balloon{Color: "YELLOW", Size: 112}
@@ -65,9 +63,7 @@ func TestStoreMultipleBalloonsSuccess(t *testing.T) {
 	defer db.Close()
 
 	store := storage.New(db)
-	defer func() {
-		is.NoErr(store.Close())
-	}()
+	defer store.Close()
 
 	bigRedBalloon := Balloon{Color: "RED", Size: 695}
 	smallYellowBalloon := Balloon{Color: "YELLOW", Size: 112}
@@ -89,9 +85,7 @@ func TestStoreMultipleBalloonsAndCakesInSuccessionRetainsCorrectRowIDs(t *testin
 	defer db.Close()
 
 	store := storage.New(db)
-	defer func() {
-		is.NoErr(store.Close())
-	}()
+	defer store.Close()
 
 	bigRedBalloon := Balloon{Color: "RED", Size: 695}
 	disguistingVeganCake := Cake{Type: "INEDIBLE", Calories: -38}

@@ -63,7 +63,7 @@ func ConvertToBlankEntries(tableName string, ownerID UUID, rowID uint32, x any) 
 	return convertToEntries(tableName, ownerID, rowID, v, false)
 }
 
-func ConvertToEntries(tableName string, ownerID UUID, rowID uint32, x interface{}) []Entry {
+func ConvertToEntries(tableName string, ownerID UUID, rowID uint32, x any) []Entry {
 	v := reflect.ValueOf(x)
 	return convertToEntries(tableName, ownerID, rowID, v, true)
 }

@@ -121,7 +121,7 @@ func TestConvertToEntries(t *testing.T) {
 	}, e[1])
 }
 
-func TestUpdateStruct(t *testing.T) {
+func TestLoadEntriesIntoStruct(t *testing.T) {
 	// Define a struct type to use for the test
 	type TestStruct struct {
 		Field1 string

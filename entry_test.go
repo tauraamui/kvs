@@ -14,7 +14,7 @@ func TestEntryStoreValuesInTable(t *testing.T) {
 	e := kvs.Entry{
 		TableName:  "users",
 		ColumnName: "email",
-		OwnerID:    11,
+		OwnerUUID:  uuid.UUID{},
 		Data:       []byte{0x33},
 	}
 
@@ -36,7 +36,7 @@ func TestEntryStoreValuesInTable(t *testing.T) {
 	newEntry := kvs.Entry{
 		TableName:  e.TableName,
 		ColumnName: e.ColumnName,
-		OwnerID:    11,
+		OwnerUUID:  uuid.UUID{},
 		RowID:      e.RowID,
 		Data:       nil,
 	}
@@ -45,13 +45,18 @@ func TestEntryStoreValuesInTable(t *testing.T) {
 	is.Equal(newEntry.Data, []byte{0x33})
 }
 
+type uuidstr string
+
+func (u uuidstr) String() string { return string(u) }
+
 func TestGettingEntryOutOfTableErrorIncorrectKey(t *testing.T) {
 	is := is.New(t)
 
+	owner := uuidstr("11")
 	e := kvs.Entry{
 		TableName:  "user",
-		ColumnName: "emailz",
-		OwnerID:    33,
+		ColumnName: "email",
+		OwnerUUID:  owner,
 		Data:       []byte{0x33},
 	}
 
@@ -72,12 +77,15 @@ func TestGettingEntryOutOfTableErrorIncorrectKey(t *testing.T) {
 
 	newEntry := kvs.Entry{
 		TableName:  e.TableName,
-		ColumnName: e.ColumnName,
-		OwnerID:    11,
+		ColumnName: "emailz",
+		OwnerUUID:  owner,
 		RowID:      e.RowID,
 		Data:       nil,
 	}
-	is.Equal(kvs.Get(db, &newEntry).Error(), "key not found: user.emailz.11.0")
+
+	err = kvs.Get(db, &newEntry)
+	is.True(err != nil)
+	is.Equal(err.Error(), "key not found: user.emailz.11.0")
 	is.Equal(newEntry.Data, nil)
 }
 
@@ -92,20 +100,21 @@ func TestConvertToEntries(t *testing.T) {
 		Bar: 4,
 	}
 
-	e := kvs.ConvertToEntries("test", 0, 0, source)
+	owner := uuidstr("39")
+	e := kvs.ConvertToEntries("test", owner, 0, source)
 	is.Equal(len(e), 2)
 
 	is = is.NewRelaxed(t)
 
 	is.Equal(kvs.Entry{
-		OwnerUUID:  uuid.UUID{},
+		OwnerUUID:  owner,
 		TableName:  "test",
 		ColumnName: "foo",
 		Data:       []byte{70, 111, 111},
 	}, e[0])
 
 	is.Equal(kvs.Entry{
-		OwnerUUID:  uuid.UUID{},
+		OwnerUUID:  owner,
 		TableName:  "test",
 		ColumnName: "bar",
 		Data:       []byte{52},

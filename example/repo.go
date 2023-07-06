@@ -64,7 +64,7 @@ func saveValue(db kvs.DB, tableName string, ownerID kvs.UUID, rowID uint32, v Va
 	if v == nil {
 		return nil
 	}
-	entries := kvs.ConvertToEntriesWithUUID(tableName, ownerID, rowID, v)
+	entries := kvs.ConvertToEntries(tableName, ownerID, rowID, v)
 	for _, e := range entries {
 		if err := kvs.Store(db, e); err != nil {
 			return err
@@ -81,7 +81,7 @@ func fetchByOwner[E any](db kvs.DB, tableName string, owner kvs.UUID) ([]E, erro
 
 	typeRef := new(E)
 
-	blankEntries := kvs.ConvertToBlankEntriesWithUUID(tableName, owner, 0, typeRef)
+	blankEntries := kvs.ConvertToBlankEntries(tableName, owner, 0, typeRef)
 	for _, ent := range blankEntries {
 		// iterate over all stored values for this entry
 		prefix := ent.PrefixKey()

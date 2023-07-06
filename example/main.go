@@ -1,0 +1,38 @@
+package main
+
+import (
+	"fmt"
+
+	"github.com/tauraamui/kvs"
+	"github.com/tauraamui/kvs/storage"
+)
+
+type Balloon struct {
+	ID    uint32 `mdb:"ignore"`
+	Color string
+	Size  int
+}
+
+func (b Balloon) TableName() string { return "balloons" }
+func (b *Balloon) SetID(id uint32)  { b.ID = id }
+func (b *Balloon) Ref() any         { return b }
+
+func main() {
+	db, err := kvs.NewMemKVDB()
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	store := storage.New(db)
+	defer store.Close()
+
+	store.Save(kvs.RootOwner{}, &Balloon{Color: "RED", Size: 695})
+	store.Save(kvs.RootOwner{}, &Balloon{Color: "WHITE", Size: 366})
+
+	bs, err := storage.LoadAllByOwner(store, Balloon{}, kvs.RootOwner{})
+	for rowID, balloon := range bs {
+		fmt.Printf("ROWID: %d, %+v\n", rowID, balloon)
+	}
+
+}

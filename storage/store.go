@@ -45,6 +45,25 @@ func saveValue(db kvs.KVDB, tableName string, ownerID kvs.UUID, rowID uint32, v 
 	return nil
 }
 
+func (s Store) Close() (err error) {
+	if s.pks == nil {
+		return
+	}
+	for _, seq := range s.pks {
+		if seq == nil {
+			continue
+		}
+		// TODO:(tauraamui) should collect all errors into group here rather than immediately escape
+		if err = seq.Release(); err != nil {
+			return
+		}
+	}
+
+	s.pks = nil
+
+	return
+}
+
 func nextRowID(db kvs.KVDB, tableName string, pks map[string]*badger.Sequence) (uint32, error) {
 	seq, err := resolveSequence(db, tableName, pks)
 	if err != nil {

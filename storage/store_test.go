@@ -28,7 +28,7 @@ func (b Cake) TableName() string { return "cakes" }
 func (b *Cake) SetID(id uint32)  { b.ID = id }
 func (b *Cake) Ref() any         { return b }
 
-func TestStoreNewSuccess(t *testing.T) {
+func TestStoreAndLoadMultipleBalloonsSuccess(t *testing.T) {
 	is := is.New(t)
 
 	db, err := kvs.NewMemKVDB()
@@ -36,10 +36,28 @@ func TestStoreNewSuccess(t *testing.T) {
 	defer db.Close()
 
 	store := storage.New(db)
-	is.True(store != nil)
+	defer func() {
+		is.NoErr(store.Close())
+	}()
+
+	bigRedBalloon := Balloon{Color: "RED", Size: 695}
+	smallYellowBalloon := Balloon{Color: "YELLOW", Size: 112}
+	mediumWhiteBalloon := Balloon{Color: "WHITE", Size: 366}
+	is.NoErr(store.Save(kvs.RootOwner{}, &bigRedBalloon))
+	is.NoErr(store.Save(kvs.RootOwner{}, &smallYellowBalloon))
+	is.NoErr(store.Save(kvs.RootOwner{}, &mediumWhiteBalloon))
+
+	bs, err := storage.LoadAllByOwner(store, Balloon{}, kvs.RootOwner{})
+	is.NoErr(err)
+
+	is.True(len(bs) == 3)
+
+	is.Equal(bs[0], Balloon{Color: "RED", Size: 695})
+	is.Equal(bs[1], Balloon{Color: "YELLOW", Size: 112})
+	is.Equal(bs[2], Balloon{Color: "WHITE", Size: 366})
 }
 
-func TestStoreBalloonsSuccess(t *testing.T) {
+func TestStoreMultipleBalloonsSuccess(t *testing.T) {
 	is := is.New(t)
 
 	db, err := kvs.NewMemKVDB()
@@ -47,7 +65,6 @@ func TestStoreBalloonsSuccess(t *testing.T) {
 	defer db.Close()
 
 	store := storage.New(db)
-	is.True(store != nil)
 	defer func() {
 		is.NoErr(store.Close())
 	}()
@@ -64,7 +81,7 @@ func TestStoreBalloonsSuccess(t *testing.T) {
 	is.Equal(mediumWhiteBalloon.ID, uint32(2))
 }
 
-func TestStoreBalloonsAndCakesInSuccessionRetainsCorrectRowIDs(t *testing.T) {
+func TestStoreMultipleBalloonsAndCakesInSuccessionRetainsCorrectRowIDs(t *testing.T) {
 	is := is.New(t)
 
 	db, err := kvs.NewMemKVDB()
@@ -72,7 +89,6 @@ func TestStoreBalloonsAndCakesInSuccessionRetainsCorrectRowIDs(t *testing.T) {
 	defer db.Close()
 
 	store := storage.New(db)
-	is.True(store != nil)
 	defer func() {
 		is.NoErr(store.Close())
 	}()

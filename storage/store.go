@@ -16,8 +16,8 @@ type Store struct {
 	pks map[string]*badger.Sequence
 }
 
-func New(db kvs.KVDB) *Store {
-	return &Store{db: db, pks: map[string]*badger.Sequence{}}
+func New(db kvs.KVDB) Store {
+	return Store{db: db, pks: map[string]*badger.Sequence{}}
 }
 
 func (s Store) Save(owner kvs.UUID, value Value) error {
@@ -43,6 +43,52 @@ func saveValue(db kvs.KVDB, tableName string, ownerID kvs.UUID, rowID uint32, v 
 	v.SetID(rowID)
 
 	return nil
+}
+
+type TableNamer interface {
+	TableName() string
+}
+
+func LoadAllByOwner[T TableNamer](s Store, v T, owner kvs.UUID) ([]T, error) {
+	db := s.db
+	dest := []T{}
+
+	// keep for later reference
+	/*
+		typeRef := new(E)
+	*/
+
+	blankEntries := kvs.ConvertToBlankEntries(v.TableName(), owner, 0, v)
+	for _, ent := range blankEntries {
+		// iterate over all stored values for this entry
+		prefix := ent.PrefixKey()
+		db.View(func(txn *badger.Txn) error {
+			it := txn.NewIterator(badger.DefaultIteratorOptions)
+			defer it.Close()
+
+			var structFieldIndex uint32 = 0
+			for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
+				if len(dest) == 0 || structFieldIndex >= uint32(len(dest)) {
+					dest = append(dest, *new(T))
+				}
+				item := it.Item()
+				ent.RowID = structFieldIndex
+				if err := item.Value(func(val []byte) error {
+					ent.Data = val
+					return nil
+				}); err != nil {
+					return err
+				}
+
+				if err := kvs.LoadEntry(&dest[structFieldIndex], ent); err != nil {
+					return err
+				}
+				structFieldIndex++
+			}
+			return nil
+		})
+	}
+	return dest, nil
 }
 
 func (s Store) Close() (err error) {

@@ -3,7 +3,7 @@
 
 ## Usage
 
-```
+```go
 type Balloon struct {
 	ID    uint32 `mdb:"ignore"`
 	Color string

@@ -36,7 +36,7 @@ func main() {
 
 ## Why?
 
-Sometimes SQL (SQLite) has too much overhead or added complexity, especially if you want to just save/persist structures
+Sometimes SQL (yes even SQLite) has too much overhead or added complexity, especially if you want to just save/persist structures
 to storage and the most common relationship you have is one of "ownership". An alternative option is to use a key value DB,
 but most of the time this is done by "pickling/encoding" the structure using some language native facility to store the structure,
 and so you lose the ability to extract individual field entries if you want to.

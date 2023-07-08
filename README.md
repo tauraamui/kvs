@@ -11,8 +11,6 @@ type Balloon struct {
 }
 
 func (b Balloon) TableName() string { return "balloons" }
-func (b *Balloon) SetID(id uint32)  { b.ID = id }
-func (b *Balloon) Ref() any         { return b }
 
 func main() {
 	db, err := kvs.NewMemKVDB()

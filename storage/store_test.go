@@ -45,7 +45,7 @@ func TestStoreAndLoadMultipleBalloonsSuccess(t *testing.T) {
 	is.NoErr(store.Save(kvs.RootOwner{}, &smallYellowBalloon))
 	is.NoErr(store.Save(kvs.RootOwner{}, &mediumWhiteBalloon))
 
-	bs, err := storage.LoadAllByOwner(store, Balloon{}, kvs.RootOwner{})
+	bs, err := storage.LoadAll(store, Balloon{}, kvs.RootOwner{})
 	is.NoErr(err)
 
 	is.True(len(bs) == 3)
@@ -53,6 +53,37 @@ func TestStoreAndLoadMultipleBalloonsSuccess(t *testing.T) {
 	is.Equal(bs[0], Balloon{ID: 0, Color: "RED", Size: 695})
 	is.Equal(bs[1], Balloon{ID: 1, Color: "YELLOW", Size: 112})
 	is.Equal(bs[2], Balloon{ID: 2, Color: "WHITE", Size: 366})
+}
+
+func TestStoreLoadMultipleLoadIndividualBalloonsSuccess(t *testing.T) {
+	is := is.New(t)
+
+	db, err := kvs.NewMemKVDB()
+	is.NoErr(err)
+	defer db.Close()
+
+	store := storage.New(db)
+	defer store.Close()
+
+	bigRedBalloon := Balloon{Color: "RED", Size: 695}
+	smallYellowBalloon := Balloon{Color: "YELLOW", Size: 112}
+	mediumWhiteBalloon := Balloon{Color: "WHITE", Size: 366}
+	is.NoErr(store.Save(kvs.RootOwner{}, &bigRedBalloon))
+	is.NoErr(store.Save(kvs.RootOwner{}, &smallYellowBalloon))
+	is.NoErr(store.Save(kvs.RootOwner{}, &mediumWhiteBalloon))
+
+	bs0 := Balloon{}
+	is.NoErr(storage.Load(store, &bs0, kvs.RootOwner{}, 0))
+
+	bs1 := Balloon{}
+	is.NoErr(storage.Load(store, &bs1, kvs.RootOwner{}, 1))
+
+	bs2 := Balloon{}
+	is.NoErr(storage.Load(store, &bs2, kvs.RootOwner{}, 2))
+
+	is.Equal(bs0, Balloon{ID: 0, Color: "RED", Size: 695})
+	is.Equal(bs1, Balloon{ID: 1, Color: "YELLOW", Size: 112})
+	is.Equal(bs2, Balloon{ID: 2, Color: "WHITE", Size: 366})
 }
 
 func TestStoreMultipleBalloonsSuccess(t *testing.T) {

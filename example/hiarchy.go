@@ -47,7 +47,7 @@ func hiarchy() {
 	store.Save(child.UUID, &healthyishCarrotCake)
 	store.Save(child.UUID, &redVelvetCake)
 
-	bs, err := storage.LoadAllByOwner(store, Cake{}, child.UUID)
+	bs, err := storage.LoadAll(store, Cake{}, child.UUID)
 	for _, cake := range bs {
 		fmt.Printf("ROWID: %d, %+v\n", cake.ID, cake)
 	}

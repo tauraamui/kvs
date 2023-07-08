@@ -49,7 +49,38 @@ type TableNamer interface {
 	TableName() string
 }
 
-func LoadAllByOwner[T TableNamer](s Store, v T, owner kvs.UUID) ([]T, error) {
+func Load[T TableNamer](s Store, dest T, owner kvs.UUID, rowID uint32) error {
+	db := s.db
+
+	blankEntries := kvs.ConvertToBlankEntries(dest.TableName(), owner, rowID, dest)
+	for _, ent := range blankEntries {
+		db.View(func(txn *badger.Txn) error {
+			item, err := txn.Get(ent.Key())
+			if err != nil {
+				return err
+			}
+
+			if err := item.Value(func(val []byte) error {
+				ent.Data = val
+				return nil
+			}); err != nil {
+				return err
+			}
+
+			return nil
+		})
+
+		ent.RowID = rowID
+
+		if err := kvs.LoadEntry(dest, ent); err != nil {
+			return err
+		}
+	}
+
+	return kvs.LoadID(dest, rowID)
+}
+
+func LoadAll[T TableNamer](s Store, v T, owner kvs.UUID) ([]T, error) {
 	db := s.db
 	dest := []T{}
 

@@ -30,7 +30,7 @@ func main() {
 	store.Save(kvs.RootOwner{}, &Balloon{Color: "RED", Size: 695})
 	store.Save(kvs.RootOwner{}, &Balloon{Color: "WHITE", Size: 366})
 
-	bs, err := storage.LoadAllByOwner(store, Balloon{}, kvs.RootOwner{})
+	bs, err := storage.LoadAll(store, Balloon{}, kvs.RootOwner{})
 	for _, balloon := range bs {
 		fmt.Printf("ROWID: %d, %+v\n", balloon.ID, balloon)
 	}

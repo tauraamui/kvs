@@ -50,9 +50,9 @@ func TestStoreAndLoadMultipleBalloonsSuccess(t *testing.T) {
 
 	is.True(len(bs) == 3)
 
-	is.Equal(bs[0], Balloon{Color: "RED", Size: 695})
-	is.Equal(bs[1], Balloon{Color: "YELLOW", Size: 112})
-	is.Equal(bs[2], Balloon{Color: "WHITE", Size: 366})
+	is.Equal(bs[0], Balloon{ID: 0, Color: "RED", Size: 695})
+	is.Equal(bs[1], Balloon{ID: 1, Color: "YELLOW", Size: 112})
+	is.Equal(bs[2], Balloon{ID: 2, Color: "WHITE", Size: 366})
 }
 
 func TestStoreMultipleBalloonsSuccess(t *testing.T) {

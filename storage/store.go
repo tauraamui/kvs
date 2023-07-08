@@ -72,6 +72,10 @@ func LoadAllByOwner[T TableNamer](s Store, v T, owner kvs.UUID) ([]T, error) {
 					dest = append(dest, *new(T))
 				}
 				item := it.Item()
+				// for reasons, we have to just keep assigning the current "field we're on" as the full entry's ID
+				if err := kvs.LoadID(&dest[structFieldIndex], structFieldIndex); err != nil {
+					return err
+				}
 				ent.RowID = structFieldIndex
 				if err := item.Value(func(val []byte) error {
 					ent.Data = val

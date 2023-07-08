@@ -2,6 +2,7 @@ package kvs
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -93,6 +94,23 @@ func LoadEntry(s interface{}, entry Entry) error {
 	return nil
 }
 
+func LoadID(s any, rowID uint32) error {
+	// convert the interface value to a reflect.Value so we can access its fields
+	val := reflect.ValueOf(s).Elem()
+
+	field, err := resolveFieldRef(val, "ID")
+	if err != nil {
+		return err
+	}
+
+	// convert the entry's Data field to the type of the target field
+	if err := assignUint32(rowID, field.Addr().Interface()); err != nil {
+		return fmt.Errorf("failed to convert entry data to field type: %v", err)
+	}
+
+	return nil
+}
+
 func resolveFieldRef(v reflect.Value, nameToMatch string) (reflect.Value, error) {
 	t := v.Type()
 
@@ -166,6 +184,21 @@ func convertToBytes(i interface{}) ([]byte, error) {
 		// Use json.Marshal to convert the interface to a []byte.
 		return json.Marshal(v)
 	}
+}
+
+func assignUint32(data uint32, dest any) error {
+	// Check that the destination argument is a pointer.
+	if reflect.TypeOf(dest).Kind() != reflect.Ptr {
+		return fmt.Errorf("destination must be a pointer")
+	}
+
+	switch v := dest.(type) {
+	case *uint32:
+		*v = data
+		return nil
+	}
+
+	return errors.New("struct field ID is not of type uint32")
 }
 
 func convertFromBytes(data []byte, i interface{}) error {

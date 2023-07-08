@@ -7,8 +7,6 @@ import (
 
 type Value interface {
 	TableName() string
-	SetID(id uint32)
-	Ref() interface{}
 }
 
 type Store struct {
@@ -40,16 +38,10 @@ func saveValue(db kvs.KVDB, tableName string, ownerID kvs.UUID, rowID uint32, v 
 		}
 	}
 
-	v.SetID(rowID)
-
-	return nil
+	return kvs.LoadID(v, rowID)
 }
 
-type TableNamer interface {
-	TableName() string
-}
-
-func Load[T TableNamer](s Store, dest T, owner kvs.UUID, rowID uint32) error {
+func Load[T Value](s Store, dest T, owner kvs.UUID, rowID uint32) error {
 	db := s.db
 
 	blankEntries := kvs.ConvertToBlankEntries(dest.TableName(), owner, rowID, dest)
@@ -80,7 +72,7 @@ func Load[T TableNamer](s Store, dest T, owner kvs.UUID, rowID uint32) error {
 	return kvs.LoadID(dest, rowID)
 }
 
-func LoadAll[T TableNamer](s Store, v T, owner kvs.UUID) ([]T, error) {
+func LoadAll[T Value](s Store, v T, owner kvs.UUID) ([]T, error) {
 	db := s.db
 	dest := []T{}
 

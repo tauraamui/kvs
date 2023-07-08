@@ -21,10 +21,8 @@ type Cake struct {
 }
 
 func (b Cake) TableName() string { return "cakes" }
-func (b *Cake) SetID(id uint32)  { b.ID = id }
-func (b *Cake) Ref() any         { return b }
 
-func hiarchy() {
+func hierarchy() {
 	db, err := kvs.NewMemKVDB()
 	if err != nil {
 		panic(err)

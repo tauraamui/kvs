@@ -15,8 +15,6 @@ type Balloon struct {
 }
 
 func (b Balloon) TableName() string { return "balloons" }
-func (b *Balloon) SetID(id uint32)  { b.ID = id }
-func (b *Balloon) Ref() any         { return b }
 
 type Cake struct {
 	ID       uint32 `mdb:"ignore"`
@@ -25,8 +23,6 @@ type Cake struct {
 }
 
 func (b Cake) TableName() string { return "cakes" }
-func (b *Cake) SetID(id uint32)  { b.ID = id }
-func (b *Cake) Ref() any         { return b }
 
 func TestStoreAndLoadMultipleBalloonsSuccess(t *testing.T) {
 	is := is.New(t)

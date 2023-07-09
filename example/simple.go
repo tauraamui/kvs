@@ -15,7 +15,7 @@ type Balloon struct {
 
 func (b Balloon) TableName() string { return "balloons" }
 
-func main() {
+func simple() {
 	db, err := kvs.NewMemKVDB()
 	if err != nil {
 		panic(err)

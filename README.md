@@ -11,8 +11,6 @@ type Balloon struct {
 }
 
 func (b Balloon) TableName() string { return "balloons" }
-func (b *Balloon) SetID(id uint32)  { b.ID = id }
-func (b *Balloon) Ref() any         { return b }
 
 func main() {
 	db, err := kvs.NewMemKVDB()
@@ -27,7 +25,7 @@ func main() {
 	store.Save(kvs.RootOwner{}, &Balloon{Color: "RED", Size: 695})
 	store.Save(kvs.RootOwner{}, &Balloon{Color: "WHITE", Size: 366})
 
-	bs, err := storage.LoadAllByOwner(store, Balloon{}, kvs.RootOwner{})
+	bs, err := storage.LoadAll(store, Balloon{}, kvs.RootOwner{})
 	for rowID, balloon := range bs {
 		fmt.Printf("ROWID: %d, %+v\n", rowID, balloon)
 	}

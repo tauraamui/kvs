@@ -45,6 +45,19 @@ func saveValue(db kvs.KVDB, tableName string, ownerID kvs.UUID, rowID uint32, v 
 	return kvs.LoadID(v, rowID)
 }
 
+func (s Store) Delete(owner kvs.UUID, value Value, rowID uint32) error {
+	db := s.db
+
+	blankEntries := kvs.ConvertToBlankEntries(value.TableName(), owner, rowID, value)
+	for _, ent := range blankEntries {
+		db.Update(func(txn *badger.Txn) error {
+			return txn.Delete(ent.Key())
+		})
+	}
+
+	return nil
+}
+
 func Load[T Value](s Store, dest T, owner kvs.UUID, rowID uint32) error {
 	db := s.db
 

@@ -24,6 +24,33 @@ type Cake struct {
 
 func (b Cake) TableName() string { return "cakes" }
 
+func TestStoreAndLoadMultipleBalloonsSuccess(t *testing.T) {
+	is := is.New(t)
+
+	db, err := kvs.NewMemKVDB()
+	is.NoErr(err)
+	defer db.Close()
+
+	store := storage.New(db)
+	defer store.Close()
+
+	bigRedBalloon := Balloon{Color: "RED", Size: 695}
+	smallYellowBalloon := Balloon{Color: "YELLOW", Size: 112}
+	mediumWhiteBalloon := Balloon{Color: "WHITE", Size: 366}
+	is.NoErr(store.Save(kvs.RootOwner{}, &bigRedBalloon))
+	is.NoErr(store.Save(kvs.RootOwner{}, &smallYellowBalloon))
+	is.NoErr(store.Save(kvs.RootOwner{}, &mediumWhiteBalloon))
+
+	bs, err := storage.LoadAll(store, Balloon{}, kvs.RootOwner{})
+	is.NoErr(err)
+
+	is.True(len(bs) == 3)
+
+	is.Equal(bs[0], Balloon{ID: 0, Color: "RED", Size: 695})
+	is.Equal(bs[1], Balloon{ID: 1, Color: "YELLOW", Size: 112})
+	is.Equal(bs[2], Balloon{ID: 2, Color: "WHITE", Size: 366})
+}
+
 func TestStoreMultipleAndUpdateSingleBalloonsSuccess(t *testing.T) {
 	is := is.New(t)
 
@@ -55,7 +82,7 @@ func TestStoreMultipleAndUpdateSingleBalloonsSuccess(t *testing.T) {
 	is.Equal(bs[2], Balloon{ID: 2, Color: "WHITE", Size: 366})
 }
 
-func TestStoreAndLoadMultipleBalloonsSuccess(t *testing.T) {
+func TestStoreAndDeleteSingleBalloonSuccess(t *testing.T) {
 	is := is.New(t)
 
 	db, err := kvs.NewMemKVDB()
@@ -77,9 +104,12 @@ func TestStoreAndLoadMultipleBalloonsSuccess(t *testing.T) {
 
 	is.True(len(bs) == 3)
 
-	is.Equal(bs[0], Balloon{ID: 0, Color: "RED", Size: 695})
-	is.Equal(bs[1], Balloon{ID: 1, Color: "YELLOW", Size: 112})
-	is.Equal(bs[2], Balloon{ID: 2, Color: "WHITE", Size: 366})
+	is.NoErr(store.Delete(kvs.RootOwner{}, &smallYellowBalloon, smallYellowBalloon.ID))
+
+	bs, err = storage.LoadAll(store, Balloon{}, kvs.RootOwner{})
+	is.NoErr(err)
+
+	is.True(len(bs) == 2)
 }
 
 func TestStoreLoadMultipleLoadIndividualBalloonsSuccess(t *testing.T) {

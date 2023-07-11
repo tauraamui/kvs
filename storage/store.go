@@ -27,6 +27,10 @@ func (s Store) Save(owner kvs.UUID, value Value) error {
 	return saveValue(s.db, value.TableName(), owner, rowID, value)
 }
 
+func (s Store) Update(owner kvs.UUID, value Value, rowID uint32) error {
+	return saveValue(s.db, value.TableName(), owner, rowID, value)
+}
+
 func saveValue(db kvs.KVDB, tableName string, ownerID kvs.UUID, rowID uint32, v Value) error {
 	if v == nil {
 		return nil

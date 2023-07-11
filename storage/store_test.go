@@ -44,7 +44,7 @@ func TestStoreAndLoadMultipleBalloonsSuccess(t *testing.T) {
 	bs, err := storage.LoadAll(store, Balloon{}, kvs.RootOwner{})
 	is.NoErr(err)
 
-	is.True(len(bs) == 3)
+	is.Equal(len(bs), 3)
 
 	is.Equal(bs[0], Balloon{ID: 0, Color: "RED", Size: 695})
 	is.Equal(bs[1], Balloon{ID: 1, Color: "YELLOW", Size: 112})

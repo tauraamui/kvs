@@ -1,6 +1,9 @@
 package storage
 
 import (
+	"strconv"
+	"strings"
+
 	"github.com/dgraph-io/badger/v3"
 	"github.com/tauraamui/kvs"
 )
@@ -72,6 +75,11 @@ func Load[T Value](s Store, dest T, owner kvs.UUID, rowID uint32) error {
 	return kvs.LoadID(dest, rowID)
 }
 
+func extractRowFromKey(k string) (int, error) {
+	rowPos := strings.LastIndex(k, ".")
+	return strconv.Atoi(k[rowPos+1:])
+}
+
 func LoadAll[T Value](s Store, v T, owner kvs.UUID) ([]T, error) {
 	db := s.db
 	dest := []T{}
@@ -85,20 +93,29 @@ func LoadAll[T Value](s Store, v T, owner kvs.UUID) ([]T, error) {
 	for _, ent := range blankEntries {
 		// iterate over all stored values for this entry
 		prefix := ent.PrefixKey()
-		db.View(func(txn *badger.Txn) error {
+		if err := db.View(func(txn *badger.Txn) error {
 			it := txn.NewIterator(badger.DefaultIteratorOptions)
 			defer it.Close()
 
 			var structFieldIndex uint32 = 0
 			for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
-				if len(dest) == 0 || structFieldIndex >= uint32(len(dest)) {
-					dest = append(dest, *new(T))
-				}
 				item := it.Item()
-				// for reasons, we have to just keep assigning the current "field we're on" as the full entry's ID
-				if err := kvs.LoadID(&dest[structFieldIndex], structFieldIndex); err != nil {
-					return err
+
+				if len(dest) == 0 || structFieldIndex >= uint32(len(dest)) {
+					key := string(item.Key())
+					rowID, err := extractRowFromKey(string(key))
+					if err != nil {
+						return err
+					}
+
+					dest = append(dest, *new(T))
+
+					// for reasons, we have to just keep assigning the current "field we're on" as the full entry's ID
+					if err := kvs.LoadID(&dest[structFieldIndex], uint32(rowID)); err != nil {
+						return err
+					}
 				}
+
 				ent.RowID = structFieldIndex
 				if err := item.Value(func(val []byte) error {
 					ent.Data = val
@@ -113,7 +130,9 @@ func LoadAll[T Value](s Store, v T, owner kvs.UUID) ([]T, error) {
 				structFieldIndex++
 			}
 			return nil
-		})
+		}); err != nil {
+			return nil, err
+		}
 	}
 	return dest, nil
 }

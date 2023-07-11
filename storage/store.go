@@ -101,11 +101,6 @@ func LoadAll[T Value](s Store, v T, owner kvs.UUID) ([]T, error) {
 	db := s.db
 	dest := []T{}
 
-	// keep for later reference
-	/*
-		typeRef := new(E)
-	*/
-
 	blankEntries := kvs.ConvertToBlankEntries(v.TableName(), owner, 0, v)
 	for _, ent := range blankEntries {
 		// iterate over all stored values for this entry

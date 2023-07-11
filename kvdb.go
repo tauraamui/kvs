@@ -13,17 +13,20 @@ type KVDB struct {
 }
 
 func NewKVDB(db *badger.DB) (KVDB, error) {
-	return newKVDB(false)
+	return newKVDB(db)
 }
 
 func NewMemKVDB() (KVDB, error) {
-	return newKVDB(true)
+	return newKVDB(nil)
 }
 
-func newKVDB(inMemory bool) (KVDB, error) {
-	db, err := badger.Open(badger.DefaultOptions("").WithLogger(nil).WithInMemory(inMemory))
-	if err != nil {
-		return KVDB{}, err
+func newKVDB(db *badger.DB) (KVDB, error) {
+	if db == nil {
+		db, err := badger.Open(badger.DefaultOptions("").WithLogger(nil).WithInMemory(true))
+		if err != nil {
+			return KVDB{}, err
+		}
+		return KVDB{conn: db}, nil
 	}
 
 	return KVDB{conn: db}, nil

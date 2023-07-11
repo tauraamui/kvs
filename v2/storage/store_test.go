@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/matryer/is"
-	"github.com/tauraamui/kvs"
-	"github.com/tauraamui/kvs/storage"
+	"github.com/tauraamui/kvs/v2"
+	"github.com/tauraamui/kvs/v2/storage"
 )
 
 type Balloon struct {

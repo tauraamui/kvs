@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -22,7 +23,7 @@ func New(db kvs.KVDB) Store {
 }
 
 func (s Store) Save(owner kvs.UUID, value Value) error {
-	rowID, err := nextRowID(s.db, value.TableName(), s.pks)
+	rowID, err := nextRowID(s.db, owner, value.TableName(), s.pks)
 	if err != nil {
 		return err
 	}
@@ -168,8 +169,8 @@ func (s Store) Close() (err error) {
 	return
 }
 
-func nextRowID(db kvs.KVDB, tableName string, pks map[string]*badger.Sequence) (uint32, error) {
-	seq, err := resolveSequence(db, tableName, pks)
+func nextRowID(db kvs.KVDB, owner kvs.UUID, tableName string, pks map[string]*badger.Sequence) (uint32, error) {
+	seq, err := resolveSequence(db, fmt.Sprintf("%s.%s", owner, tableName), pks)
 	if err != nil {
 		return 0, err
 	}
@@ -189,15 +190,15 @@ func nextSequence(seq *badger.Sequence) (uint32, error) {
 	return uint32(s), nil
 }
 
-func resolveSequence(db kvs.KVDB, tableName string, pks map[string]*badger.Sequence) (*badger.Sequence, error) {
-	seq, ok := pks[tableName]
+func resolveSequence(db kvs.KVDB, sequenceKey string, pks map[string]*badger.Sequence) (*badger.Sequence, error) {
+	seq, ok := pks[sequenceKey]
 	var err error
 	if !ok {
-		seq, err = db.GetSeq([]byte(tableName), 1)
+		seq, err = db.GetSeq([]byte(sequenceKey), 1)
 		if err != nil {
 			return nil, err
 		}
-		pks[tableName] = seq
+		pks[sequenceKey] = seq
 	}
 
 	return seq, nil

@@ -4,10 +4,27 @@ type Query struct {
 	filters []Filter
 }
 
+type operator int64
+
+const (
+	undefined operator = iota
+	equal
+	lessthan
+)
+
+func (op operator) String() string {
+	switch op {
+	case equal:
+		return "equal"
+	default:
+		return "undefined"
+	}
+}
+
 type Filter struct {
 	q         *Query
 	fieldName string
-	operator  string
+	op        operator
 	value     any
 }
 
@@ -23,8 +40,14 @@ func (q *Query) Filter(fieldName string) *Filter {
 }
 
 func (f *Filter) Eq(value any) *Query {
-	f.operator = "eq"
 	f.value = value
+	f.op = equal
+	return f.q
+}
+
+func (f *Filter) Lt(value any) *Query {
+	f.value = value
+	f.op = lessthan
 	return f.q
 }
 

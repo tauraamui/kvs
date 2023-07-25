@@ -1,4 +1,9 @@
-package storage
+package query
+
+import (
+	"github.com/tauraamui/kvs/v2"
+	"github.com/tauraamui/kvs/v2/storage"
+)
 
 type Query struct {
 	filters []Filter
@@ -28,8 +33,20 @@ type Filter struct {
 	value     any
 }
 
-func NewQuery() *Query {
+func New() *Query {
 	return &Query{}
+}
+
+func Run[T storage.Value](s storage.Store, q *Query) ([]T, error) {
+	return storage.LoadAllWithOperators[T](s, kvs.RootOwner{}, func(e kvs.Entry) bool {
+		for _, filter := range q.filters {
+			if filter.op == equal {
+				return kvs.CompareBytesToAny(e.Data, filter.value)
+			}
+		}
+
+		return len(q.filters) > 0
+	})
 }
 
 func (q *Query) Filter(fieldName string) *Filter {

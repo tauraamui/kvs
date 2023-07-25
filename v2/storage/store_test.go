@@ -41,7 +41,7 @@ func TestStoreAndLoadMultipleBalloonsSuccess(t *testing.T) {
 	is.NoErr(store.Save(kvs.RootOwner{}, &smallYellowBalloon))
 	is.NoErr(store.Save(kvs.RootOwner{}, &mediumWhiteBalloon))
 
-	bs, err := storage.LoadAll(store, Balloon{}, kvs.RootOwner{})
+	bs, err := storage.LoadAll[Balloon](store, kvs.RootOwner{})
 	is.NoErr(err)
 
 	is.Equal(len(bs), 3)
@@ -72,7 +72,7 @@ func TestStoreMultipleAndUpdateSingleBalloonsSuccess(t *testing.T) {
 	smallYellowBalloon.Color = "PINK"
 	is.NoErr(store.Update(kvs.RootOwner{}, &smallYellowBalloon, smallYellowBalloon.ID))
 
-	bs, err := storage.LoadAll(store, Balloon{}, kvs.RootOwner{})
+	bs, err := storage.LoadAll[Balloon](store, kvs.RootOwner{})
 	is.NoErr(err)
 
 	is.True(len(bs) == 3)
@@ -99,14 +99,14 @@ func TestStoreAndDeleteSingleBalloonSuccess(t *testing.T) {
 	is.NoErr(store.Save(kvs.RootOwner{}, &smallYellowBalloon))
 	is.NoErr(store.Save(kvs.RootOwner{}, &mediumWhiteBalloon))
 
-	bs, err := storage.LoadAll(store, Balloon{}, kvs.RootOwner{})
+	bs, err := storage.LoadAll[Balloon](store, kvs.RootOwner{})
 	is.NoErr(err)
 
 	is.True(len(bs) == 3)
 
 	is.NoErr(store.Delete(kvs.RootOwner{}, &smallYellowBalloon, smallYellowBalloon.ID))
 
-	bs, err = storage.LoadAll(store, Balloon{}, kvs.RootOwner{})
+	bs, err = storage.LoadAll[Balloon](store, kvs.RootOwner{})
 	is.NoErr(err)
 
 	is.True(len(bs) == 2)

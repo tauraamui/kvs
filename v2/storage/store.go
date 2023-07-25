@@ -98,9 +98,20 @@ func extractRowFromKey(k string) (int, error) {
 	return strconv.Atoi(k[rowPos+1:])
 }
 
-func LoadAll[T Value](s Store, v T, owner kvs.UUID) ([]T, error) {
+func LoadAll[T Value](s Store, owner kvs.UUID) ([]T, error) {
+	return loadAllWithEval[T](s, owner, func(e kvs.Entry) bool { return true })
+}
+
+func LoadAllWithOperators[T Value](s Store, owner kvs.UUID, eval func(e kvs.Entry) bool) ([]T, error) {
+	return loadAllWithEval[T](s, owner, eval)
+}
+
+func loadAllWithEval[T Value](s Store, owner kvs.UUID, eval func(e kvs.Entry) bool) ([]T, error) {
 	db := s.db
 	dest := []T{}
+	v := *new(T)
+
+	exclusions := map[string]int{}
 
 	blankEntries := kvs.ConvertToBlankEntries(v.TableName(), owner, 0, v)
 	for _, ent := range blankEntries {
@@ -137,9 +148,20 @@ func LoadAll[T Value](s Store, v T, owner kvs.UUID) ([]T, error) {
 					return err
 				}
 
-				if err := kvs.LoadEntry(&dest[structFieldIndex], ent); err != nil {
-					return err
+				excluded := false
+				if !eval(ent) {
+					exclusions[string(item.Key())] = int(structFieldIndex)
+					excluded = true
 				}
+
+				if !excluded {
+					if _, exists := exclusions[string(item.Key())]; !exists {
+						if err := kvs.LoadEntry(&dest[structFieldIndex], ent); err != nil {
+							return err
+						}
+					}
+				}
+
 				structFieldIndex++
 			}
 			return nil

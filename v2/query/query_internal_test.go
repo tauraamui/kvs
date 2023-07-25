@@ -1,4 +1,4 @@
-package storage
+package query
 
 import (
 	"testing"
@@ -13,12 +13,11 @@ func TestOperatorString(t *testing.T) {
 
 	is.Equal(eq.String(), "equal")
 	is.Equal(un.String(), "undefined")
-
 }
 
 func TestQueryFilterSetsOperatorAndValue(t *testing.T) {
 	is := is.New(t)
-	q := NewQuery().Filter("color").Eq("yellow")
+	q := New().Filter("color").Eq("yellow")
 
 	is.True(len(q.filters) == 1)
 	is.Equal(q.filters[0].op, equal)
@@ -27,7 +26,7 @@ func TestQueryFilterSetsOperatorAndValue(t *testing.T) {
 
 func TestQueryFilterSubsequentOperatorAndValueOverwritesPrevious(t *testing.T) {
 	is := is.New(t)
-	q := NewQuery()
+	q := New()
 	filter := q.Filter("color")
 	q = filter.Eq("yellow")
 	q = filter.Eq("blue")

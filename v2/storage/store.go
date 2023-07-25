@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -111,7 +112,7 @@ func loadAllWithEval[T Value](s Store, owner kvs.UUID, eval func(e kvs.Entry) bo
 	dest := []T{}
 	v := *new(T)
 
-	exclusions := map[string]int{}
+	exclusions := map[int]int{}
 
 	blankEntries := kvs.ConvertToBlankEntries(v.TableName(), owner, 0, v)
 	for _, ent := range blankEntries {
@@ -149,16 +150,14 @@ func loadAllWithEval[T Value](s Store, owner kvs.UUID, eval func(e kvs.Entry) bo
 				}
 
 				excluded := false
-				if !eval(ent) {
-					exclusions[string(item.Key())] = int(structFieldIndex)
+				if eval != nil && !eval(ent) {
+					exclusions[int(structFieldIndex)] = int(structFieldIndex)
 					excluded = true
 				}
 
 				if !excluded {
-					if _, exists := exclusions[string(item.Key())]; !exists {
-						if err := kvs.LoadEntry(&dest[structFieldIndex], ent); err != nil {
-							return err
-						}
+					if err := kvs.LoadEntry(&dest[structFieldIndex], ent); err != nil {
+						return err
 					}
 				}
 
@@ -169,6 +168,21 @@ func loadAllWithEval[T Value](s Store, owner kvs.UUID, eval func(e kvs.Entry) bo
 			return nil, err
 		}
 	}
+
+	keys := []int{}
+	for k := range exclusions {
+		keys = append(keys, k)
+	}
+
+	sort.Ints(keys)
+	offset := 0
+	for k := range keys {
+		lastIdx := len(dest) - 1
+		dest[k-offset] = dest[lastIdx]
+		dest = dest[:lastIdx]
+		offset++
+	}
+
 	return dest, nil
 }
 

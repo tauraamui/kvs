@@ -39,13 +39,22 @@ func New() *Query {
 
 func Run[T storage.Value](s storage.Store, q *Query) ([]T, error) {
 	return storage.LoadAllWithOperators[T](s, kvs.RootOwner{}, func(e kvs.Entry) bool {
-		for _, filter := range q.filters {
-			if filter.op == equal {
-				return kvs.CompareBytesToAny(e.Data, filter.value)
-			}
+		if q == nil {
+			return true
 		}
 
-		return len(q.filters) > 0
+		excluded := false
+		for _, filter := range q.filters {
+			if excluded {
+				return excluded
+			}
+			if filter.op == equal {
+				excluded = !kvs.CompareBytesToAny(e.Data, filter.value)
+			}
+
+		}
+
+		return excluded || len(q.filters) == 0
 	})
 }
 

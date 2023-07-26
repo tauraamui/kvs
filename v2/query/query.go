@@ -33,34 +33,39 @@ type Filter struct {
 	value     any
 }
 
+func (f Filter) cmp(d []byte) bool {
+	return kvs.CompareBytesToAny(d, f.value)
+}
+
 func New() *Query {
 	return &Query{}
 }
 
 func Run[T storage.Value](s storage.Store, q *Query) ([]T, error) {
-	return storage.LoadAllWithOperators[T](s, kvs.RootOwner{}, func(e kvs.Entry) bool {
+	return storage.LoadAllWithEvaluator[T](s, kvs.RootOwner{}, func(e kvs.Entry) bool {
 		if q == nil {
 			return true
 		}
 
-		excluded := false
+		matching := false
 		for _, filter := range q.filters {
-			if excluded {
-				return excluded
+			if filter.fieldName == e.ColumnName {
+				if filter.op == equal {
+					matching = filter.cmp(e.Data)
+					if !matching {
+						return false
+					}
+				}
 			}
-			if filter.op == equal {
-				excluded = !kvs.CompareBytesToAny(e.Data, filter.value)
-			}
-
 		}
 
-		return excluded || len(q.filters) == 0
+		return matching || len(q.filters) == 0
 	})
 }
 
 func (q *Query) Filter(fieldName string) *Filter {
 	q = q.clone()
-	filter := Filter{q: q}
+	filter := Filter{q: q, fieldName: fieldName}
 	q.filters = append(q.filters, filter)
 	return &q.filters[len(q.filters)-1]
 }

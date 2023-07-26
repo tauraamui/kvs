@@ -103,7 +103,7 @@ func LoadAll[T Value](s Store, owner kvs.UUID) ([]T, error) {
 	return loadAllWithEval[T](s, owner, func(e kvs.Entry) bool { return true })
 }
 
-func LoadAllWithOperators[T Value](s Store, owner kvs.UUID, eval func(e kvs.Entry) bool) ([]T, error) {
+func LoadAllWithEvaluator[T Value](s Store, owner kvs.UUID, eval func(e kvs.Entry) bool) ([]T, error) {
 	return loadAllWithEval[T](s, owner, eval)
 }
 
@@ -149,16 +149,12 @@ func loadAllWithEval[T Value](s Store, owner kvs.UUID, eval func(e kvs.Entry) bo
 					return err
 				}
 
-				excluded := false
 				if eval != nil && !eval(ent) {
 					exclusions[int(structFieldIndex)] = int(structFieldIndex)
-					excluded = true
 				}
 
-				if !excluded {
-					if err := kvs.LoadEntry(&dest[structFieldIndex], ent); err != nil {
-						return err
-					}
+				if err := kvs.LoadEntry(&dest[structFieldIndex], ent); err != nil {
+					return err
 				}
 
 				structFieldIndex++

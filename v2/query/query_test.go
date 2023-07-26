@@ -32,7 +32,7 @@ func TestQueryFilterWithSinglePredicateSuccess(t *testing.T) {
 	store.Save(kvs.RootOwner{}, &Balloon{Color: "WHITE", Size: 366})
 	store.Save(kvs.RootOwner{}, &Balloon{Color: "RED", Size: 695})
 
-	bs, err := query.Run[Balloon](store, query.New().Filter("color").Eq("WHITE"))
+	bs, err := query.Run[Balloon](store, kvs.RootOwner{}, query.New().Filter("color").Eq("WHITE"))
 	is.NoErr(err)
 	is.Equal(len(bs), 1)
 	is = is.NewRelaxed(t)
@@ -41,7 +41,7 @@ func TestQueryFilterWithSinglePredicateSuccess(t *testing.T) {
 
 	is = is.New(t)
 
-	bs, err = query.Run[Balloon](store, query.New().Filter("color").Eq("RED"))
+	bs, err = query.Run[Balloon](store, kvs.RootOwner{}, query.New().Filter("color").Eq("RED"))
 	is.NoErr(err)
 	is.Equal(len(bs), 1)
 	is = is.NewRelaxed(t)
@@ -64,7 +64,7 @@ func TestQueryFilterWithSinglePredicateMultipleValuesSuccess(t *testing.T) {
 	store.Save(kvs.RootOwner{}, &Balloon{Color: "WHITE", Size: 366})
 	store.Save(kvs.RootOwner{}, &Balloon{Color: "RED", Size: 695})
 
-	bs, err := query.Run[Balloon](store, query.New().Filter("color").Eq("GREEN", "WHITE", "CYAN", "PURPLE", "RED", "GOLD"))
+	bs, err := query.Run[Balloon](store, kvs.RootOwner{}, query.New().Filter("color").Eq("GREEN", "WHITE", "CYAN", "PURPLE", "RED", "GOLD"))
 	is.NoErr(err)
 	is.Equal(len(bs), 2)
 	is = is.NewRelaxed(t)
@@ -90,11 +90,11 @@ func TestQueryFilterWithSinglePredicateFailure(t *testing.T) {
 	store.Save(kvs.RootOwner{}, &Balloon{Color: "WHITE", Size: 366})
 	store.Save(kvs.RootOwner{}, &Balloon{Color: "RED", Size: 695})
 
-	bs, err := query.Run[Balloon](store, query.New().Filter("color").Eq("deef"))
+	bs, err := query.Run[Balloon](store, kvs.RootOwner{}, query.New().Filter("color").Eq("deef"))
 	is.NoErr(err)
 	is.Equal(len(bs), 0)
 
-	bs, err = query.Run[Balloon](store, query.New().Filter("color").Eq("rgrr"))
+	bs, err = query.Run[Balloon](store, kvs.RootOwner{}, query.New().Filter("color").Eq("rgrr"))
 	is.NoErr(err)
 	is.Equal(len(bs), 0)
 }
@@ -114,7 +114,7 @@ func TestQueryFilterWithMultiplePredicateSuccess(t *testing.T) {
 	store.Save(kvs.RootOwner{}, &Balloon{Color: "RED", Size: 695})
 	store.Save(kvs.RootOwner{}, &Balloon{Color: "WHITE", Size: 366})
 
-	bs, err := query.Run[Balloon](store, query.New().Filter("color").Eq("WHITE").Filter("size").Eq(366))
+	bs, err := query.Run[Balloon](store, kvs.RootOwner{}, query.New().Filter("color").Eq("WHITE").Filter("size").Eq(366))
 	is.NoErr(err)
 	is.Equal(len(bs), 1)
 	is = is.NewRelaxed(t)
@@ -123,7 +123,7 @@ func TestQueryFilterWithMultiplePredicateSuccess(t *testing.T) {
 
 	is = is.New(t)
 
-	bs, err = query.Run[Balloon](store, query.New().Filter("color").Eq("RED").Filter("size").Eq(695))
+	bs, err = query.Run[Balloon](store, kvs.RootOwner{}, query.New().Filter("color").Eq("RED").Filter("size").Eq(695))
 	is.NoErr(err)
 	is.Equal(len(bs), 1)
 	is = is.NewRelaxed(t)
@@ -146,7 +146,7 @@ func TestQueryFilterWithMultiplePredicateMultipleValuesSuccess(t *testing.T) {
 	store.Save(kvs.RootOwner{}, &Balloon{Color: "RED", Size: 695})
 	store.Save(kvs.RootOwner{}, &Balloon{Color: "WHITE", Size: 366})
 
-	bs, err := query.Run[Balloon](store, query.New().Filter("color").Eq("ZIMA_BLUE", "BLACK", "WHITE", "RED").Filter("size").Eq(222, 366, 948))
+	bs, err := query.Run[Balloon](store, kvs.RootOwner{}, query.New().Filter("color").Eq("ZIMA_BLUE", "BLACK", "WHITE", "RED").Filter("size").Eq(222, 366, 948))
 	is.NoErr(err)
 	is.Equal(len(bs), 1)
 	is = is.NewRelaxed(t)
@@ -169,11 +169,11 @@ func TestQueryFilterWithMultiplePredicateFailure(t *testing.T) {
 	store.Save(kvs.RootOwner{}, &Balloon{Color: "RED", Size: 695})
 	store.Save(kvs.RootOwner{}, &Balloon{Color: "WHITE", Size: 366})
 
-	bs, err := query.Run[Balloon](store, query.New().Filter("color").Eq("WHITE").Filter("size").Eq(110))
+	bs, err := query.Run[Balloon](store, kvs.RootOwner{}, query.New().Filter("color").Eq("WHITE").Filter("size").Eq(110))
 	is.NoErr(err)
 	is.Equal(len(bs), 0)
 
-	bs, err = query.Run[Balloon](store, query.New().Filter("color").Eq("RED").Filter("size").Eq(548))
+	bs, err = query.Run[Balloon](store, kvs.RootOwner{}, query.New().Filter("color").Eq("RED").Filter("size").Eq(548))
 	is.NoErr(err)
 	is.Equal(len(bs), 0)
 }
@@ -193,7 +193,7 @@ func TestQueryFilterWithMultiplePredicateMultipleValuesFailure(t *testing.T) {
 	store.Save(kvs.RootOwner{}, &Balloon{Color: "RED", Size: 695})
 	store.Save(kvs.RootOwner{}, &Balloon{Color: "WHITE", Size: 366})
 
-	bs, err := query.Run[Balloon](store, query.New().Filter("color").Eq("GREY", "PINK").Filter("size").Eq(110, 366))
+	bs, err := query.Run[Balloon](store, kvs.RootOwner{}, query.New().Filter("color").Eq("GREY", "PINK").Filter("size").Eq(110, 366))
 	is.NoErr(err)
 	is.Equal(len(bs), 0)
 }

@@ -23,7 +23,7 @@ func BenchmarkQueryWithSingleFilterWithTwoRecords(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		query.Run[Balloon](store, query.New().Filter("color").Eq("WHITE"))
+		query.Run[Balloon](store, kvs.RootOwner{}, query.New().Filter("color").Eq("WHITE"))
 	}
 }
 
@@ -42,7 +42,7 @@ func BenchmarkQueryWithMultiFilterWithTwoRecords(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		query.Run[Balloon](store, query.New().Filter("color").Eq("WHITE").Filter("size").Eq(306))
+		query.Run[Balloon](store, kvs.RootOwner{}, query.New().Filter("color").Eq("WHITE").Filter("size").Eq(306))
 	}
 }
 
@@ -66,6 +66,6 @@ func BenchmarkQueryWithMultiFilterWithFiveHunderedRecordsWithMatchingFilter(b *t
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		query.Run[Balloon](store, query.New().Filter("color").Eq("RED").Filter("size").Eq(306, 422, 211))
+		query.Run[Balloon](store, kvs.RootOwner{}, query.New().Filter("color").Eq("RED").Filter("size").Eq(306, 422, 211))
 	}
 }

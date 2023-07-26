@@ -46,8 +46,8 @@ func New() *Query {
 	return &Query{}
 }
 
-func Run[T storage.Value](s storage.Store, q *Query) ([]T, error) {
-	return storage.LoadAllWithEvaluator[T](s, kvs.RootOwner{}, func(e kvs.Entry) bool {
+func Run[T storage.Value](s storage.Store, owner kvs.UUID, q *Query) ([]T, error) {
+	return storage.LoadAllWithEvaluator[T](s, owner, func(e kvs.Entry) bool {
 		if q == nil || len(q.filters) == 0 {
 			return true
 		}

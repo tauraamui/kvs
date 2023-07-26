@@ -128,41 +128,8 @@ func loadAllWithPredicate[T Value](s Store, owner kvs.UUID, pred func(e kvs.Entr
 					continue
 				}
 
-				item := it.Item()
-
-				if len(dest) == 0 || structFieldIndex >= uint32(len(dest)) {
-					key := string(item.Key())
-					rowID, err := extractRowFromKey(string(key))
-					if err != nil {
-						return err
-					}
-
-					dest = append(dest, *new(T))
-
-					// for reasons, we have to just keep assigning the current "field we're on" as the full entry's ID
-					if err := kvs.LoadID(&dest[structFieldIndex], uint32(rowID)); err != nil {
-						return err
-					}
-				}
-
-				ent.RowID = structFieldIndex
-				if err := item.Value(func(val []byte) error {
-					ent.Data = val
-					return nil
-				}); err != nil {
+				if err := forEachEntryItem(structFieldIndex, ent, it.Item(), &dest, &exclusions, pred); err != nil {
 					return err
-				}
-
-				excluded := false
-				if pred != nil && !pred(ent) {
-					exclusions[int(structFieldIndex)] = int(structFieldIndex)
-					excluded = true
-				}
-
-				if !excluded {
-					if err := kvs.LoadEntry(&dest[structFieldIndex], ent); err != nil {
-						return err
-					}
 				}
 
 				structFieldIndex++
@@ -201,6 +168,45 @@ func (s Store) Close() (err error) {
 	s.pks = nil
 
 	return
+}
+
+func forEachEntryItem[T Value](index uint32, ent kvs.Entry, item *badger.Item, dest *[]T, exclusions *map[int]int, pred func(e kvs.Entry) bool) error {
+	if len(*dest) == 0 || index >= uint32(len(*dest)) {
+		key := string(item.Key())
+		rowID, err := extractRowFromKey(string(key))
+		if err != nil {
+			return err
+		}
+
+		*dest = append(*dest, *new(T))
+
+		// for reasons, we have to just keep assigning the current "field we're on" as the full entry's ID
+		if err := kvs.LoadID(&(*dest)[index], uint32(rowID)); err != nil {
+			return err
+		}
+	}
+
+	ent.RowID = index
+	if err := item.Value(func(val []byte) error {
+		ent.Data = val
+		return nil
+	}); err != nil {
+		return err
+	}
+
+	excluded := false
+	if pred != nil && !pred(ent) {
+		(*exclusions)[int(index)] = int(index)
+		excluded = true
+	}
+
+	if !excluded {
+		if err := kvs.LoadEntry(&(*dest)[index], ent); err != nil {
+			return err
+		}
+	}
+	return nil
+
 }
 
 func nextRowID(db kvs.KVDB, owner kvs.UUID, tableName string, pks map[string]*badger.Sequence) (uint32, error) {

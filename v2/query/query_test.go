@@ -49,6 +49,30 @@ func TestQueryFilterWithSinglePredicateSuccess(t *testing.T) {
 	is.Equal(bs[0].Size, 695)
 }
 
+func TestQueryFilterWithSinglePredicateFailure(t *testing.T) {
+	is := is.New(t)
+
+	db, err := kvs.NewMemKVDB()
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	store := storage.New(db)
+	defer store.Close()
+
+	store.Save(kvs.RootOwner{}, &Balloon{Color: "WHITE", Size: 366})
+	store.Save(kvs.RootOwner{}, &Balloon{Color: "RED", Size: 695})
+
+	bs, err := query.Run[Balloon](store, query.New().Filter("color").Eq("deef"))
+	is.NoErr(err)
+	is.Equal(len(bs), 0)
+
+	bs, err = query.Run[Balloon](store, query.New().Filter("color").Eq("rgrr"))
+	is.NoErr(err)
+	is.Equal(len(bs), 0)
+}
+
 func TestQueryFilterWithMultiplePredicateSuccess(t *testing.T) {
 	is := is.New(t)
 
@@ -79,4 +103,28 @@ func TestQueryFilterWithMultiplePredicateSuccess(t *testing.T) {
 	is = is.NewRelaxed(t)
 	is.Equal(bs[0].Color, "RED")
 	is.Equal(bs[0].Size, 695)
+}
+
+func TestQueryFilterWithMultiplePredicateFailure(t *testing.T) {
+	is := is.New(t)
+
+	db, err := kvs.NewMemKVDB()
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	store := storage.New(db)
+	defer store.Close()
+
+	store.Save(kvs.RootOwner{}, &Balloon{Color: "RED", Size: 695})
+	store.Save(kvs.RootOwner{}, &Balloon{Color: "WHITE", Size: 366})
+
+	bs, err := query.Run[Balloon](store, query.New().Filter("color").Eq("WHITE").Filter("size").Eq(110))
+	is.NoErr(err)
+	is.Equal(len(bs), 0)
+
+	bs, err = query.Run[Balloon](store, query.New().Filter("color").Eq("RED").Filter("size").Eq(548))
+	is.NoErr(err)
+	is.Equal(len(bs), 0)
 }

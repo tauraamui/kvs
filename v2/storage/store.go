@@ -121,10 +121,10 @@ func loadAllWithPredicate[T Value](s Store, owner kvs.UUID, pred func(e kvs.Entr
 			it := txn.NewIterator(badger.DefaultIteratorOptions)
 			defer it.Close()
 
-			var structFieldIndex uint32 = 0
+			var destinationindex uint32 = 0
 			for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
-				if _, ok := exclusions[int(structFieldIndex)]; ok {
-					structFieldIndex++
+				if _, ok := exclusions[int(destinationindex)]; ok {
+					destinationindex++
 					continue
 				}
 
@@ -133,11 +133,11 @@ func loadAllWithPredicate[T Value](s Store, owner kvs.UUID, pred func(e kvs.Entr
 					return err
 				}
 
-				if err := forEachEntryItem(structFieldIndex, ent, item.Key(), &dest, &exclusions, pred); err != nil {
+				if err := forEachEntryItem(destinationindex, ent, item.Key(), &dest, &exclusions, pred); err != nil {
 					return err
 				}
 
-				structFieldIndex++
+				destinationindex++
 			}
 			return nil
 		}); err != nil {

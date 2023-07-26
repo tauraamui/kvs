@@ -123,6 +123,11 @@ func loadAllWithPredicate[T Value](s Store, owner kvs.UUID, pred func(e kvs.Entr
 
 			var structFieldIndex uint32 = 0
 			for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
+				if _, ok := exclusions[int(structFieldIndex)]; ok {
+					structFieldIndex++
+					continue
+				}
+
 				item := it.Item()
 
 				if len(dest) == 0 || structFieldIndex >= uint32(len(dest)) {
@@ -148,12 +153,16 @@ func loadAllWithPredicate[T Value](s Store, owner kvs.UUID, pred func(e kvs.Entr
 					return err
 				}
 
+				excluded := false
 				if pred != nil && !pred(ent) {
 					exclusions[int(structFieldIndex)] = int(structFieldIndex)
+					excluded = true
 				}
 
-				if err := kvs.LoadEntry(&dest[structFieldIndex], ent); err != nil {
-					return err
+				if !excluded {
+					if err := kvs.LoadEntry(&dest[structFieldIndex], ent); err != nil {
+						return err
+					}
 				}
 
 				structFieldIndex++

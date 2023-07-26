@@ -30,11 +30,16 @@ type Filter struct {
 	q         *Query
 	fieldName string
 	op        operator
-	value     any
+	values    []any
 }
 
 func (f Filter) cmp(d []byte) bool {
-	return kvs.CompareBytesToAny(d, f.value)
+	for _, v := range f.values {
+		if kvs.CompareBytesToAny(d, v) {
+			return true
+		}
+	}
+	return false
 }
 
 func New() *Query {
@@ -72,14 +77,14 @@ func (q *Query) Filter(fieldName string) *Filter {
 	return &q.filters[len(q.filters)-1]
 }
 
-func (f *Filter) Eq(value any) *Query {
-	f.value = value
+func (f *Filter) Eq(value ...any) *Query {
+	f.values = value
 	f.op = equal
 	return f.q
 }
 
-func (f *Filter) Lt(value any) *Query {
-	f.value = value
+func (f *Filter) Lt(value ...any) *Query {
+	f.values = value
 	f.op = lessthan
 	return f.q
 }

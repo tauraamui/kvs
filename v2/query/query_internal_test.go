@@ -21,7 +21,7 @@ func TestQueryFilterSetsOperatorAndValue(t *testing.T) {
 
 	is.True(len(q.filters) == 1)
 	is.Equal(q.filters[0].op, equal)
-	is.Equal(q.filters[0].value, "yellow")
+	is.Equal(q.filters[0].values, []any{"yellow"})
 }
 
 func TestQueryFilterSubsequentOperatorAndValueOverwritesPrevious(t *testing.T) {
@@ -33,5 +33,5 @@ func TestQueryFilterSubsequentOperatorAndValueOverwritesPrevious(t *testing.T) {
 
 	is.True(len(q.filters) == 1)
 	is.Equal(q.filters[0].op, equal)
-	is.Equal(q.filters[0].value, "blue")
+	is.Equal(q.filters[0].values, []any{"blue"})
 }

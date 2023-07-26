@@ -128,7 +128,12 @@ func loadAllWithPredicate[T Value](s Store, owner kvs.UUID, pred func(e kvs.Entr
 					continue
 				}
 
-				if err := forEachEntryItem(structFieldIndex, ent, it.Item(), &dest, &exclusions, pred); err != nil {
+				item := it.Item()
+				if err := loadItemDataIntoEntry(&ent, item.Value); err != nil {
+					return err
+				}
+
+				if err := forEachEntryItem(structFieldIndex, ent, item.Key(), &dest, &exclusions, pred); err != nil {
 					return err
 				}
 
@@ -170,9 +175,8 @@ func (s Store) Close() (err error) {
 	return
 }
 
-func forEachEntryItem[T Value](index uint32, ent kvs.Entry, item *badger.Item, dest *[]T, exclusions *map[int]int, pred func(e kvs.Entry) bool) error {
+func forEachEntryItem[T Value](index uint32, ent kvs.Entry, key []byte, dest *[]T, exclusions *map[int]int, pred func(e kvs.Entry) bool) error {
 	if len(*dest) == 0 || index >= uint32(len(*dest)) {
-		key := string(item.Key())
 		rowID, err := extractRowFromKey(string(key))
 		if err != nil {
 			return err
@@ -187,12 +191,6 @@ func forEachEntryItem[T Value](index uint32, ent kvs.Entry, item *badger.Item, d
 	}
 
 	ent.RowID = index
-	if err := item.Value(func(val []byte) error {
-		ent.Data = val
-		return nil
-	}); err != nil {
-		return err
-	}
 
 	excluded := false
 	if pred != nil && !pred(ent) {
@@ -206,7 +204,13 @@ func forEachEntryItem[T Value](index uint32, ent kvs.Entry, item *badger.Item, d
 		}
 	}
 	return nil
+}
 
+func loadItemDataIntoEntry(ent *kvs.Entry, fn func(func(val []byte) error) error) error {
+	return fn(func(val []byte) error {
+		ent.Data = val
+		return nil
+	})
 }
 
 func nextRowID(db kvs.KVDB, owner kvs.UUID, tableName string, pks map[string]*badger.Sequence) (uint32, error) {

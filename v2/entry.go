@@ -1,6 +1,7 @@
 package kvs
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -199,6 +200,26 @@ func assignUint32(data uint32, dest any) error {
 	}
 
 	return errors.New("struct field ID is not of type uint32")
+}
+
+func CompareBytesToAny(a []byte, i interface{}) bool {
+	switch v := i.(type) {
+	case []byte:
+		return bytes.Equal(a, v)
+	case string:
+		return string(a) == v
+	default:
+		val := reflect.ValueOf(i)
+		if val.Kind() == reflect.Ptr {
+			val = reflect.Indirect(val)
+		}
+		newVal := reflect.New(val.Type())
+		err := json.Unmarshal(a, newVal.Interface())
+		if err != nil {
+			return false
+		}
+		return reflect.DeepEqual(newVal.Elem().Interface(), i)
+	}
 }
 
 func convertFromBytes(data []byte, i interface{}) error {

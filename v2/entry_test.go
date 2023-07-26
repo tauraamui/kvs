@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/matryer/is"
-	"github.com/tauraamui/kvs"
+	"github.com/tauraamui/kvs/v2"
 )
 
 func TestEntryStoreValuesInTable(t *testing.T) {
@@ -194,4 +194,29 @@ func TestSequences(t *testing.T) {
 	id, err = chocolateSeq.Next()
 	is.NoErr(err) // error occurred when aquiring next iter value
 	is.Equal(id, uint64(2))
+}
+
+func TestCompareStringWithBytes(t *testing.T) {
+	is := is.New(t)
+
+	input := []byte("hello")
+	is.True(kvs.CompareBytesToAny(input, "hello"))
+}
+
+func TestCompareBytesWithBytes(t *testing.T) {
+	is := is.New(t)
+
+	input := []byte("{\"A\":5,\"B\":\"hello\"}")
+	is.True(kvs.CompareBytesToAny(input, input))
+}
+
+func TestCompareBytesWithStruct(t *testing.T) {
+	is := is.New(t)
+
+	type TestStruct struct {
+		A int
+		B string
+	}
+	input := []byte("{\"A\":5,\"B\":\"hello\"}")
+	is.True(kvs.CompareBytesToAny(input, TestStruct{A: 5, B: "hello"}))
 }

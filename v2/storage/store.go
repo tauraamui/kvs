@@ -98,9 +98,20 @@ func extractRowFromKey(k string) (int, error) {
 	return strconv.Atoi(k[rowPos+1:])
 }
 
-func LoadAll[T Value](s Store, v T, owner kvs.UUID) ([]T, error) {
+func LoadAll[T Value](s Store, owner kvs.UUID) ([]T, error) {
+	return loadAllWithPredicate[T](s, owner, func(e kvs.Entry) bool { return true })
+}
+
+func LoadAllWithEvaluator[T Value](s Store, owner kvs.UUID, pred func(e kvs.Entry) bool) ([]T, error) {
+	return loadAllWithPredicate[T](s, owner, pred)
+}
+
+func loadAllWithPredicate[T Value](s Store, owner kvs.UUID, pred func(e kvs.Entry) bool) ([]T, error) {
 	db := s.db
 	dest := []T{}
+	v := *new(T)
+
+	exclusions := map[int]int{}
 
 	blankEntries := kvs.ConvertToBlankEntries(v.TableName(), owner, 0, v)
 	for _, ent := range blankEntries {
@@ -110,44 +121,39 @@ func LoadAll[T Value](s Store, v T, owner kvs.UUID) ([]T, error) {
 			it := txn.NewIterator(badger.DefaultIteratorOptions)
 			defer it.Close()
 
-			var structFieldIndex uint32 = 0
+			var destinationindex uint32 = 0
 			for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
+				if _, ok := exclusions[int(destinationindex)]; ok {
+					destinationindex++
+					continue
+				}
+
 				item := it.Item()
-
-				if len(dest) == 0 || structFieldIndex >= uint32(len(dest)) {
-					key := string(item.Key())
-					rowID, err := extractRowFromKey(string(key))
-					if err != nil {
-						return err
-					}
-
-					dest = append(dest, *new(T))
-
-					// for reasons, we have to just keep assigning the current "field we're on" as the full entry's ID
-					if err := kvs.LoadID(&dest[structFieldIndex], uint32(rowID)); err != nil {
-						return err
-					}
-				}
-
-				ent.RowID = structFieldIndex
-				if err := item.Value(func(val []byte) error {
-					ent.Data = val
-					return nil
-				}); err != nil {
+				if err := loadItemDataIntoEntry(&ent, item.Value); err != nil {
 					return err
 				}
 
-				if err := kvs.LoadEntry(&dest[structFieldIndex], ent); err != nil {
+				if err := forEachEntryItem(destinationindex, ent, item.Key(), &dest, &exclusions, pred); err != nil {
 					return err
 				}
-				structFieldIndex++
+
+				destinationindex++
 			}
 			return nil
 		}); err != nil {
 			return nil, err
 		}
 	}
-	return dest, nil
+
+	finalDest := []T{}
+	for i, v := range dest {
+		if _, ok := exclusions[i]; ok {
+			continue
+		}
+		finalDest = append(finalDest, v)
+	}
+
+	return finalDest, nil
 }
 
 func (s Store) Close() (err error) {
@@ -167,6 +173,44 @@ func (s Store) Close() (err error) {
 	s.pks = nil
 
 	return
+}
+
+func forEachEntryItem[T Value](index uint32, ent kvs.Entry, key []byte, dest *[]T, exclusions *map[int]int, pred func(e kvs.Entry) bool) error {
+	if len(*dest) == 0 || index >= uint32(len(*dest)) {
+		rowID, err := extractRowFromKey(string(key))
+		if err != nil {
+			return err
+		}
+
+		*dest = append(*dest, *new(T))
+
+		// for reasons, we have to just keep assigning the current "field we're on" as the full entry's ID
+		if err := kvs.LoadID(&(*dest)[index], uint32(rowID)); err != nil {
+			return err
+		}
+	}
+
+	ent.RowID = index
+
+	excluded := false
+	if pred != nil && !pred(ent) {
+		(*exclusions)[int(index)] = int(index)
+		excluded = true
+	}
+
+	if !excluded {
+		if err := kvs.LoadEntry(&(*dest)[index], ent); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func loadItemDataIntoEntry(ent *kvs.Entry, fn func(func(val []byte) error) error) error {
+	return fn(func(val []byte) error {
+		ent.Data = val
+		return nil
+	})
 }
 
 func nextRowID(db kvs.KVDB, owner kvs.UUID, tableName string, pks map[string]*badger.Sequence) (uint32, error) {

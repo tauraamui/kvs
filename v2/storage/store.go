@@ -2,7 +2,6 @@ package storage
 
 import (
 	"fmt"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -165,22 +164,15 @@ func loadAllWithPredicate[T Value](s Store, owner kvs.UUID, pred func(e kvs.Entr
 		}
 	}
 
-	keys := []int{}
-	for k := range exclusions {
-		keys = append(keys, k)
+	finalDest := []T{}
+	for i, v := range dest {
+		if _, ok := exclusions[i]; ok {
+			continue
+		}
+		finalDest = append(finalDest, v)
 	}
 
-	sort.Ints(keys)
-	offset := 0
-	// FIX:(tauraamui) order of removal does matter
-	for k := range keys {
-		lastIdx := len(dest) - 1
-		dest[k-offset] = dest[lastIdx]
-		dest = dest[:lastIdx]
-		offset++
-	}
-
-	return dest, nil
+	return finalDest, nil
 }
 
 func (s Store) Close() (err error) {

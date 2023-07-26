@@ -57,7 +57,11 @@ func BenchmarkQueryWithMultiFilterWithFiveHunderedRecordsWithMatchingFilter(b *t
 	defer store.Close()
 
 	for i := 0; i < 500; i++ {
-		store.Save(kvs.RootOwner{}, &Balloon{Color: "RED", Size: i})
+		color := "RED"
+		if i%2 == 0 {
+			color = "BLUE"
+		}
+		store.Save(kvs.RootOwner{}, &Balloon{Color: color, Size: i})
 	}
 
 	b.ResetTimer()

@@ -17,7 +17,39 @@ type Balloon struct {
 
 func (b Balloon) TableName() string { return "balloons" }
 
-func TestQueryFilters(t *testing.T) {
+func TestQueryFilterWithSinglePredicateSuccess(t *testing.T) {
+	is := is.New(t)
+
+	db, err := kvs.NewMemKVDB()
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	store := storage.New(db)
+	defer store.Close()
+
+	store.Save(kvs.RootOwner{}, &Balloon{Color: "WHITE", Size: 366})
+	store.Save(kvs.RootOwner{}, &Balloon{Color: "RED", Size: 695})
+
+	bs, err := query.Run[Balloon](store, query.New().Filter("color").Eq("WHITE"))
+	is.NoErr(err)
+	is.Equal(len(bs), 1)
+	is = is.NewRelaxed(t)
+	is.Equal(bs[0].Color, "WHITE")
+	is.Equal(bs[0].Size, 366)
+
+	is = is.New(t)
+
+	bs, err = query.Run[Balloon](store, query.New().Filter("color").Eq("RED"))
+	is.NoErr(err)
+	is.Equal(len(bs), 1)
+	is = is.NewRelaxed(t)
+	is.Equal(bs[0].Color, "RED")
+	is.Equal(bs[0].Size, 695)
+}
+
+func TestQueryFilterWithMultiplePredicateSuccess(t *testing.T) {
 	is := is.New(t)
 
 	db, err := kvs.NewMemKVDB()

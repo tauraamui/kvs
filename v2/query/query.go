@@ -43,23 +43,25 @@ func New() *Query {
 
 func Run[T storage.Value](s storage.Store, q *Query) ([]T, error) {
 	return storage.LoadAllWithEvaluator[T](s, kvs.RootOwner{}, func(e kvs.Entry) bool {
-		if q == nil {
+		if q == nil || len(q.filters) == 0 {
 			return true
 		}
 
-		matching := false
-		for _, filter := range q.filters {
+		captured := true
+		for i, filter := range q.filters {
+			if i > 0 && !captured {
+				return false
+			}
 			if filter.fieldName == e.ColumnName {
 				if filter.op == equal {
-					matching = filter.cmp(e.Data)
-					if !matching {
-						return false
+					if !filter.cmp(e.Data) {
+						captured = false
 					}
 				}
 			}
 		}
 
-		return matching || len(q.filters) == 0
+		return captured
 	})
 }
 

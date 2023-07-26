@@ -54,7 +54,7 @@ func TestQueryFilterWithSinglePredicateFailure(t *testing.T) {
 
 	db, err := kvs.NewMemKVDB()
 	if err != nil {
-		panic(err)
+		is.NoErr(err)
 	}
 	defer db.Close()
 

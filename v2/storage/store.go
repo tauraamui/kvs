@@ -100,14 +100,14 @@ func extractRowFromKey(k string) (int, error) {
 }
 
 func LoadAll[T Value](s Store, owner kvs.UUID) ([]T, error) {
-	return loadAllWithEval[T](s, owner, func(e kvs.Entry) bool { return true })
+	return loadAllWithPredicate[T](s, owner, func(e kvs.Entry) bool { return true })
 }
 
-func LoadAllWithEvaluator[T Value](s Store, owner kvs.UUID, eval func(e kvs.Entry) bool) ([]T, error) {
-	return loadAllWithEval[T](s, owner, eval)
+func LoadAllWithEvaluator[T Value](s Store, owner kvs.UUID, pred func(e kvs.Entry) bool) ([]T, error) {
+	return loadAllWithPredicate[T](s, owner, pred)
 }
 
-func loadAllWithEval[T Value](s Store, owner kvs.UUID, eval func(e kvs.Entry) bool) ([]T, error) {
+func loadAllWithPredicate[T Value](s Store, owner kvs.UUID, pred func(e kvs.Entry) bool) ([]T, error) {
 	db := s.db
 	dest := []T{}
 	v := *new(T)
@@ -149,7 +149,7 @@ func loadAllWithEval[T Value](s Store, owner kvs.UUID, eval func(e kvs.Entry) bo
 					return err
 				}
 
-				if eval != nil && !eval(ent) {
+				if pred != nil && !pred(ent) {
 					exclusions[int(structFieldIndex)] = int(structFieldIndex)
 				}
 

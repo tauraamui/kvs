@@ -172,6 +172,7 @@ func loadAllWithEval[T Value](s Store, owner kvs.UUID, eval func(e kvs.Entry) bo
 
 	sort.Ints(keys)
 	offset := 0
+	// FIX:(tauraamui) order of removal does matter
 	for k := range keys {
 		lastIdx := len(dest) - 1
 		dest[k-offset] = dest[lastIdx]

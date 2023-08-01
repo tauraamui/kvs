@@ -1,6 +1,8 @@
 
 # KVS (Key Value Store lib)
 
+[![Maintainability](https://api.codeclimate.com/v1/badges/f3947361002e02193fdc/maintainability)](https://codeclimate.com/github/tauraamui/kvs/maintainability)
+
 ## Usage
 
 ```go

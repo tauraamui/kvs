@@ -1,7 +1,7 @@
-
 # KVS (Key Value Store lib)
 
 [![Maintainability](https://api.codeclimate.com/v1/badges/f3947361002e02193fdc/maintainability)](https://codeclimate.com/github/tauraamui/kvs/maintainability)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Ftauraamui%2Fkvs.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Ftauraamui%2Fkvs?ref=badge_shield)
 
 ## Usage
 
@@ -58,3 +58,7 @@ being stored. Using the power of key prefix iteration, you can then extract all 
 which the library does internally by using a prefix key which is the full key except for the row number element which is
 a wildcard.
 
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Ftauraamui%2Fkvs.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Ftauraamui%2Fkvs?ref=badge_large)

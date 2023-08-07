@@ -16,13 +16,15 @@ type Balloon struct {
 func (b Balloon) TableName() string { return "balloons" }
 
 func main() {
+	conn, err := badger.Open(badger.DefaultOptions("example.db"))
+	// or
 	db, err := kvs.NewMemKVDB()
 	if err != nil {
 		panic(err)
 	}
 	defer db.Close()
 
-	store := storage.New(db)
+	store := storage.New(db) // or storage.New(conn)
 	defer store.Close()
 
 	store.Save(kvs.RootOwner{}, &Balloon{Color: "RED", Size: 695})

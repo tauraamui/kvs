@@ -44,6 +44,8 @@ to storage and the most common relationship you have is one of "ownership". An a
 but most of the time this is done by "pickling/encoding" the structure using some language native facility to store the structure,
 and so you lose the ability to extract individual field entries if you want to.
 
+Also, it's fast compared to similar libraries and in some cases SQLite: https://github.com/tauraamui/kvs-bench
+
 ## How?
 
 When a structure is "saved", each struct field and it's value become a new entry. The library uses this key structure internally

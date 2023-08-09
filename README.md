@@ -44,7 +44,7 @@ to storage and the most common relationship you have is one of "ownership". An a
 but most of the time this is done by "pickling/encoding" the structure using some language native facility to store the structure,
 and so you lose the ability to extract individual field entries if you want to.
 
-Also, it's fast compared to similar libraries and in some cases SQLite: https://github.com/tauraamui/kvs-bench
+Also, it's fast compared to similar libraries and SQLite: https://github.com/tauraamui/kvs-bench
 
 ## How?
 

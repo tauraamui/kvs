@@ -49,6 +49,7 @@ type Entry struct {
 	OwnerUUID  UUID
 	RowID      uint32
 	Data       []byte
+	Meta       byte
 }
 
 func (e Entry) PrefixKey() []byte {
@@ -68,7 +69,8 @@ func (e Entry) resolveOwnerID() string {
 
 func Store(db KVDB, e Entry) error {
 	return db.conn.Update(func(txn *badger.Txn) error {
-		return txn.Set([]byte(e.Key()), e.Data)
+		be := badger.NewEntry([]byte(e.Key()), e.Data)
+		return txn.SetEntry(be.WithMeta(e.Meta))
 	})
 }
 
@@ -86,6 +88,7 @@ func Get(db KVDB, e *Entry) error {
 		}); err != nil {
 			return err
 		}
+		e.Meta = item.UserMeta()
 
 		return nil
 	})

@@ -32,6 +32,7 @@
 package kvs_test
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/google/uuid"
@@ -47,6 +48,7 @@ func TestEntryStoreValuesInTable(t *testing.T) {
 		ColumnName: "email",
 		OwnerUUID:  uuid.UUID{},
 		Data:       []byte{0x33},
+		Meta:       byte(reflect.Float64),
 	}
 
 	db, err := kvs.NewMemKVDB()
@@ -74,6 +76,7 @@ func TestEntryStoreValuesInTable(t *testing.T) {
 	is.NoErr(kvs.Get(db, &newEntry))
 
 	is.Equal(newEntry.Data, []byte{0x33})
+	is.Equal(newEntry.Meta, byte(reflect.Float64))
 }
 
 type uuidstr string
@@ -89,6 +92,7 @@ func TestGettingEntryOutOfTableErrorIncorrectKey(t *testing.T) {
 		ColumnName: "email",
 		OwnerUUID:  owner,
 		Data:       []byte{0x33},
+		Meta:       byte(reflect.String),
 	}
 
 	db, err := kvs.NewMemKVDB()
@@ -118,6 +122,7 @@ func TestGettingEntryOutOfTableErrorIncorrectKey(t *testing.T) {
 	is.True(err != nil)
 	is.Equal(err.Error(), "key not found: user.emailz.11.0")
 	is.Equal(newEntry.Data, nil)
+	is.Equal(newEntry.Meta, uint8(0x0))
 }
 
 func TestConvertToEntries(t *testing.T) {

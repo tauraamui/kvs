@@ -1,3 +1,9 @@
+# THIS REPOSITORY IS NO LONGER MAINTANED
+
+The new pkg location can be found within this repo: https://github.com/tauraamui/bluepanda
+
+If you want to receive further library updates change your imports to `github.com/tauraamui/bluepanda/pkg/kvs`
+
 # KVS (Key Value Store lib)
 
 [![Maintainability](https://api.codeclimate.com/v1/badges/f3947361002e02193fdc/maintainability)](https://codeclimate.com/github/tauraamui/kvs/maintainability)
